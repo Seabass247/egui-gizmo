@@ -163,7 +163,6 @@ impl Gizmo {
             if state.active_subgizmo_id.is_none() {
                 if let Some(subgizmo) = self.pick_subgizmo(ui, pointer_ray) {
                     subgizmo.focused = true;
-
                     if interaction.drag_started() && dragging {
                         state.active_subgizmo_id = Some(subgizmo.id);
                     }
@@ -184,7 +183,6 @@ impl Gizmo {
                 }
             }
         }
-
         state.save(ui.ctx(), self.id);
 
         for subgizmo in self.subgizmos() {
@@ -330,6 +328,7 @@ impl Gizmo {
 
     /// Add given subgizmos to this gizmo
     fn add_subgizmos<const N: usize>(&mut self, subgizmos: [SubGizmo; N]) {
+
         let mut i = self.subgizmo_count;
         for subgizmo in subgizmos.into_iter() {
             self.subgizmos[i] = Some(subgizmo);
@@ -553,11 +552,13 @@ struct GizmoState {
 
 pub(crate) trait WidgetData: Sized + Default + Copy + Clone + Send + Sync + 'static {
     fn load(ctx: &Context, gizmo_id: Id) -> Self {
-        *ctx.memory().id_data_temp.get_or_default(gizmo_id)
+        ctx.memory().data
+                    .get_temp::<Self>(gizmo_id)
+                    .unwrap_or_default()
     }
 
     fn save(self, ctx: &Context, gizmo_id: Id) {
-        ctx.memory().id_data_temp.insert(gizmo_id, self);
+        ctx.memory().data.insert_temp(gizmo_id, self);
     }
 }
 
