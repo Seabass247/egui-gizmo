@@ -1,5 +1,5 @@
 use egui::{Pos2, Rect};
-use glam::{Mat3, Mat4, Vec3, Vec4};
+pub use glam::{Mat3, Mat4, Vec3, Vec4};
 
 /// Creates a matrix that represents rotation between two 3d vectors
 ///

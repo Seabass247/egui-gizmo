@@ -35,7 +35,7 @@ use glam::{Mat4, Quat, Vec3, Vec4, Vec4Swizzles};
 
 use crate::subgizmo::{SubGizmo, SubGizmoKind};
 
-mod math;
+pub mod math;
 mod painter;
 mod rotation;
 mod scale;
@@ -141,7 +141,7 @@ impl Gizmo {
     ///
     /// Returns the result of the interaction, which includes a transformed model matrix.
     /// [`None`] is returned when the gizmo is not active.
-    pub fn interact(mut self, ui: &mut Ui) -> Option<GizmoResult> {
+    pub fn interact(mut self, ui: &mut Ui) -> (Option<GizmoResult>, Option<Ray>) {
         self.config.prepare(ui);
 
         // Choose subgizmos based on the gizmo mode
@@ -152,12 +152,13 @@ impl Gizmo {
         };
 
         let mut result = None;
+        let mut ray = None;
         let mut state = GizmoState::load(ui.ctx(), self.id);
 
         if let Some(pointer_ray) = self.pointer_ray(ui) {
             let interaction = ui.interact(self.config.viewport, self.id, Sense::click_and_drag());
             let dragging = interaction.dragged_by(PointerButton::Primary);
-
+            ray = Some(pointer_ray);
             // If there is no active subgizmo, find which one of them
             // is under the mouse pointer, if any.
             if state.active_subgizmo_id.is_none() {
@@ -191,7 +192,7 @@ impl Gizmo {
             }
         }
 
-        result
+        (result, ray)
     }
 
     /// Picks the subgizmo that is closest to the mouse pointer
@@ -339,7 +340,7 @@ impl Gizmo {
     }
 
     /// Calculate a world space ray from current mouse position
-    fn pointer_ray(&self, ui: &Ui) -> Option<Ray> {
+    pub fn pointer_ray(&self, ui: &Ui) -> Option<Ray> {
         let hover = ui.input().pointer.hover_pos()?;
         let viewport = self.config.viewport;
 
@@ -539,9 +540,18 @@ impl GizmoConfig {
 }
 
 #[derive(Debug, Copy, Clone)]
-pub(crate) struct Ray {
-    origin: Vec3,
-    direction: Vec3,
+pub struct Ray {
+    pub origin: Vec3,
+    pub direction: Vec3,
+}
+
+impl Ray {
+    pub fn origin(&self) -> Vec3 {
+        self.origin
+    }
+    pub fn direction(&self) -> Vec3 {
+        self.direction
+    }
 }
 
 /// Gizmo state that is saved between frames
