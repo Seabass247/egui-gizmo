@@ -141,7 +141,7 @@ impl Gizmo {
     ///
     /// Returns the result of the interaction, which includes a transformed model matrix.
     /// [`None`] is returned when the gizmo is not active.
-    pub fn interact(mut self, ui: &mut Ui) -> (Option<GizmoResult>, Option<Ray>) {
+    pub fn interact(mut self, ui: &mut Ui) -> Option<GizmoResult> {
         self.config.prepare(ui);
 
         // Choose subgizmos based on the gizmo mode
@@ -152,13 +152,11 @@ impl Gizmo {
         };
 
         let mut result = None;
-        let mut ray = None;
         let mut state = GizmoState::load(ui.ctx(), self.id);
 
         if let Some(pointer_ray) = self.pointer_ray(ui) {
             let interaction = ui.interact(self.config.viewport, self.id, Sense::click_and_drag());
             let dragging = interaction.dragged_by(PointerButton::Primary);
-            ray = Some(pointer_ray);
             // If there is no active subgizmo, find which one of them
             // is under the mouse pointer, if any.
             if state.active_subgizmo_id.is_none() {
@@ -192,7 +190,7 @@ impl Gizmo {
             }
         }
 
-        (result, ray)
+        result
     }
 
     /// Picks the subgizmo that is closest to the mouse pointer
